@@ -1,34 +1,29 @@
 use std::fs;
 
-pub fn new_project(project_name: &str) {
-    let path_to_project: String = format!(".\\{}", project_name);
+pub fn new_project(name: &str) {
+    let path_to_project: String = format!(".\\{}", name);
     let _ = fs::create_dir_all(format!("{}\\src", path_to_project));
+    let _ = fs::create_dir_all(format!("{}\\include\\include", path_to_project));
     let _ = fs::create_dir_all(format!("{}\\build\\release", path_to_project));
     let _ = fs::create_dir_all(format!("{}\\build\\debug", path_to_project));
     make_maincpp(&path_to_project);
-    make_json_file(&path_to_project);
     make_makefile(&path_to_project);
 }
 
-fn make_json_file(path: &str) {
-    let _ = fs::File::create(format!("{}\\projectInfo.json", path));
-    let json: String = format!(r#"{{ "name" : "{}", "dependencies" : [] }}"#, path.replace(r".\", ""));
-    let _ = fs::write(format!("{}\\projectInfo.json", path), json);
-}
-
-fn make_makefile(path: &str) { 
+fn make_makefile(path: &str) {
     let _ = fs::File::create(format!("{}\\makefile", path));
     let makefile: String = 
 r#"flags =
-include = 
+include = -Iinclude\include
+cppFiles = .\src\main.cpp
 staticLibraries = 
 dynamicLibraries =
         
 run :
-#g++ .\src\main.cpp -o .\build\release\main.exe $(flags)
+#g++ $(cppFiles) -o .\build\release\main.exe $(flags) $(include)
 #.\build\release\main.exe
 debug :
-#g++ .\src\main.cpp -o .\build\release\main.exe -g $(flags)
+#g++ $(cppFiles) -o .\build\release\main.exe -g $(flags) $(include)
 #gdb .\build\release\main.exe 
 "#.replace("#", "\t");
     let _ = fs::write(format!("{}\\makefile", path), makefile);
@@ -41,9 +36,19 @@ r#"#include <iostream>
 
 int main(int argc, char** argv)
 {    
-    std::cout << "Hello world!" << "\n";
+    std::cout << "Hello world!\n";
     return 0;
 }
 "#;
     let _ = fs::write(format!("{}\\src\\main.cpp", path), maincpp);
+}
+
+pub fn new_include_file(name: &str) {
+    let _ = fs::File::create(format!(".\\include\\include\\{}", name));
+} 
+
+pub fn new_cpp_file(name: &str) {
+    let _ = fs::File::create(format!(".\\src\\{}.cpp", name));
+    //let makefile 
+    //let _ = fs::write(".\\makefile", makefile);
 }
