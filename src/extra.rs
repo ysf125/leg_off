@@ -1,5 +1,5 @@
 use std::fs;
-use crate::toml_read_write;
+use crate::makefile;
 
 pub fn new_project(name: &str) {
     let path_to_project: String = format!(".\\{}", name);
@@ -9,13 +9,12 @@ pub fn new_project(name: &str) {
     let _ = fs::create_dir_all(format!("{}\\build\\debug", path_to_project));
     make_maincpp(&path_to_project);
     make_makefile(&path_to_project);
-    make_toml_file(&path_to_project);
 }
 
 fn make_makefile(path: &str) {
     let _ = fs::File::create(format!("{}\\makefile", path));
     let makefile: String = 
-r#"flags =
+r"flags =
 include = -Iinclude\include
 cppFiles = .\src\main.cpp
         
@@ -25,7 +24,7 @@ run :
 debug :
 #g++ $(cppFiles) -o .\build\release\main.exe -g $(flags) $(include)
 #gdb .\build\release\main.exe 
-"#.replace("#", "\t");
+".replace("#", "\t");
     let _ = fs::write(format!("{}\\makefile", path), makefile);
 }
 
@@ -43,22 +42,20 @@ int main(int argc, char** argv)
     let _ = fs::write(format!("{}\\src\\main.cpp", path), maincpp);
 }
 
-fn make_toml_file(path: &str) {
-    let _ = fs::File::create(format!("{}\\projectInfo.toml", path));
-    let toml:String  = 
-r#"name = "$"
-cppFiles = ["main.cpp"]
-
-[dependencies]
-"#.replace("$", &path.replace(".\\", ""));
-    let _ = fs::write(format!("{}\\projectInfo.toml", path), toml);
-}
-
-pub fn new_include_file(name: &str) {
+pub fn new_include(name: &str) {
     let _ = fs::File::create(format!(".\\include\\include\\{}", name));
 } 
 
-pub fn new_cpp_file(name: &str) {
+pub fn remove_include(name: &str) {
+    let _ = fs::remove_file(format!(".\\include\\include\\{}.hpp", name));
+}
+
+pub fn new_cpp(name: &str) {
     let _ = fs::File::create(format!(".\\src\\{}.cpp", name));
-    // Edit make file
+    makefile::add_cpp_to_makefile(name);
+}
+
+pub fn remove_cpp(name: &str) {
+    let _ = fs::remove_file(format!(".\\src\\{}.cpp", name));
+    makefile::remove_cpp_from_makefile(name);
 }
